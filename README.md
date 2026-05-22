@@ -18,11 +18,10 @@ A continuación, se documentan las entidades y atributos extraídos de las tabla
 | `usuarios.txt` | usuario, contraseña, rol, (cedula del paciente o ID del médico) | Contabilización de usuarios. |
 
 **Relaciones entre entidades:**
-* La tabla `citas.txt` actúa como el núcleo transaccional conectándose con `medicos.txt` mediante el atributo `id_medico` (ej. M-001).
+* La tabla `citas.txt` actúa como el núcleo transaccional conectándose con `medicos.txt` mediante el atributo `id_medico`.
 * La tabla `citas.txt` se conecta con `pacientes.txt` mediante la `cedula_paciente`.
 
 ### 2.2 Bocetado Visual (Mockup)
-Inserte en este espacio el boceto de la interfaz gráfica del Dashboard (diseñado en Paint, Canva, Figma u otra herramienta).
 
 <img width="2560" height="4585" alt="Medical Center Appointment Operations Dashboard" src="https://github.com/user-attachments/assets/230257d9-4dcc-4d25-9731-be4b3b4ed316" />
 
