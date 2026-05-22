@@ -34,8 +34,6 @@ A continuación, se documentan las entidades y atributos extraídos de las tabla
 ---
 
 ## 3. Construcción e Implementación de los KPIs
-Esta sección contiene el bloque de código estructurado de datos crudos provenientes de los archivos .txt delimitados por punto y coma y generar la visualización.
-
 **Código Fuente de la Implementación (Python / Pandas):**
 ```python
 # Espacio reservado para el código fuente según el documento original
