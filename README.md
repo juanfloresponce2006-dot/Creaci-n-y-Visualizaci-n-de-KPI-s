@@ -24,7 +24,8 @@ A continuación, se documentan las entidades y atributos extraídos de las tabla
 ### 2.2 Bocetado Visual (Mockup)
 Inserte en este espacio el boceto de la interfaz gráfica del Dashboard (diseñado en Paint, Canva, Figma u otra herramienta).
 
-*(Espacio designado para la imagen del Medical Center Appointment Operations Dashboard)*
+<img width="2560" height="4585" alt="Medical Center Appointment Operations Dashboard" src="https://github.com/user-attachments/assets/230257d9-4dcc-4d25-9731-be4b3b4ed316" />
+
 
 **Justificación Técnica de las Visualizaciones Seleccionadas:**
 * **KPI 1: Tasa de Citas Canceladas y Pendientes:** Se justifica el uso de un gráfico de dona para observar rápidamente la proporción de citas que están en estado 'Cancelada' frente a las 'Pendientes' o completadas.
