@@ -36,7 +36,72 @@ A continuación, se documentan las entidades y atributos extraídos de las tabla
 ## 3. Construcción e Implementación de los KPIs
 **Código Fuente de la Implementación (Python / Pandas):**
 ```python
-# Espacio reservado para el código fuente según el documento original
+# import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Configuración básica de estilo para los reportes
+sns.set_theme(style="whitegrid")
+path = "/content/"
+
+
+# 1. CARGA DE DATOS (Archivos del TPS en C)
+# Cargar citas - Forzamos strings en los IDs para evitar que borre ceros a la izquierda
+cols_citas = ['id_cita', 'cedula_paciente', 'id_medico', 'fecha', 'hora', 'estado_cita', 'diagnostico']
+df_citas = pd.read_csv(f"{path}citas.txt", sep=';', names=cols_citas, header=None, dtype=str)
+
+# Traducimos los números del TPS a texto claro para el reporte gerencial
+diccionario_estados = {'0': 'Cancelada', '1': 'Activa', '2': 'Atendida'}
+df_citas['estado_desc'] = df_citas['estado_cita'].map(diccionario_estados)
+
+# Cargar médicos
+cols_medicos = ['id_medico', 'nombre_medico', 'especialidad', 'horario']
+df_medicos = pd.read_csv(f"{path}medicos.txt", sep=';', names=cols_medicos, header=None, dtype=str)
+
+# Cargar pacientes para graficar el histograma
+cols_pacientes = ['nombre_paciente', 'cedula_paciente', 'edad', 'telefono', 'correo']
+df_pacientes = pd.read_csv(f"{path}pacientes.txt", sep=';', names=cols_pacientes, header=None, dtype=str)
+df_pacientes['edad'] = pd.to_numeric(df_pacientes['edad'], errors='coerce')
+
+
+
+# 2. GENERACIÓN DEL DASHBOARD (Capa Visual MIS)
+# Creamos el lienzo con 3 subplots 
+fig, axes = plt.subplots(1, 3, figsize=(19, 6))
+fig.suptitle('Dashboard de Gestión Hospitalaria - Indicadores Clave (MIS)', fontsize=16, fontweight='bold', y=1.02)
+
+# KPI 1: Distribución y Estado de las Citas 
+citas_por_estado = df_citas['estado_desc'].value_counts()
+colores_pie = ['#2ca02c', '#d62728', '#1f77b4'] # Verde (Atendida), Rojo (Cancelada), Azul (Activa)
+
+axes[0].pie(citas_por_estado, labels=citas_por_estado.index, autopct='%1.1f%%', startangle=140, colors=colores_pie)
+axes[0].set_title('KPI 1: Estado Actual de Citas', fontsize=12, fontweight='bold')
+
+# KPI 2: Demanda de Servicios por Especialidad
+# Cruzamos las citas con la tabla de médicos para obtener el campo especialidad
+df_citas_medicos = pd.merge(df_citas, df_medicos, on='id_medico', how='inner')
+demanda_esp = df_citas_medicos['especialidad'].value_counts().reset_index()
+demanda_esp.columns = ['Especialidad', 'Total Citas']
+
+# Graficamos usando un color fijo para evitar advertencias de la librería
+sns.barplot(data=demanda_esp, x='Total Citas', y='Especialidad', ax=axes[1], color='#4682B4')
+axes[1].set_title('KPI 2: Demanda por Especialidad Médica', fontsize=12, fontweight='bold')
+axes[1].set_xlabel('Número de Citas Registradas')
+axes[1].set_ylabel('') 
+
+# KPI 3: Perfil de Edad de Pacientes Atendidos
+# Combinamos citas con pacientes y filtramos únicamente los casos con éxito ('Atendida')
+df_citas_pacientes = pd.merge(df_citas, df_pacientes, on='cedula_paciente', how='inner')
+pacientes_atendidos = df_citas_pacientes[df_citas_pacientes['estado_cita'] == '2']
+
+sns.histplot(data=pacientes_atendidos, x='edad', bins=12, kde=True, ax=axes[2], color='#8a2be2')
+axes[2].set_title('KPI 3: Rango de Edad (Pacientes Atendidos)', fontsize=12, fontweight='bold')
+axes[2].set_xlabel('Edad')
+axes[2].set_ylabel('Cantidad de Pacientes')
+
+# Ajustes finales de empaquetado para que no se encima el texto
+plt.tight_layout()
+plt.show()
 ```
 
 ---
