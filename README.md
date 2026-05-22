@@ -8,7 +8,7 @@ Tarea
 
 ## 2. Mapeo de Atributos y Boceto de Interfaz
 ### 2.1 Mapeo en el Esquema de Base de Datos
-A continuación, se documentan las entidades y atributos extraídos de las tablas de texto plano (TXT delimitado por punto y coma) del TPS (Sistema de Gestión de Citas Médicas) necesarios para la construcción del cuadro de mando gerencial.
+Se documentan las entidades y atributos extraídos de las tablas de texto plano (.txt delimitado por punto y coma) del TPS (Sistema de Gestión de Citas Médicas).
 
 | Archivo TXT | Atributos / Columnas | Propósito en el MIS |
 | :--- | :--- | :--- |
