@@ -160,10 +160,12 @@ except Exception as e:
 ```
 
 ---
-<img width="1189" height="366" alt="WhatsApp Image 2026-05-29 at 00 17 56" src="https://github.com/user-attachments/assets/dc6168ab-7fd7-4aba-b742-df51ac85c60e" />
-<img width="1188" height="397" alt="WhatsApp Image 2026-05-29 at 00 17 25" src="https://github.com/user-attachments/assets/10f76ede-4825-40a1-a912-06b336d3f3ea" />
-<img width="1194" height="407" alt="WhatsApp Image 2026-05-29 at 00 17 06" src="https://github.com/user-attachments/assets/f1e52b2d-9099-4193-b749-91025d9a3ed4" />
 <img width="1190" height="428" alt="WhatsApp Image 2026-05-29 at 00 16 50" src="https://github.com/user-attachments/assets/b554b976-4cb8-4fe1-ad81-bd5645d6cc9b" />
+<img width="1194" height="407" alt="WhatsApp Image 2026-05-29 at 00 17 06" src="https://github.com/user-attachments/assets/f1e52b2d-9099-4193-b749-91025d9a3ed4" />
+<img width="1188" height="397" alt="WhatsApp Image 2026-05-29 at 00 17 25" src="https://github.com/user-attachments/assets/10f76ede-4825-40a1-a912-06b336d3f3ea" />
+<img width="1189" height="366" alt="WhatsApp Image 2026-05-29 at 00 17 56" src="https://github.com/user-attachments/assets/dc6168ab-7fd7-4aba-b742-df51ac85c60e" />
+
+
 
 Figura obtenida mediante el código implementado
 
