@@ -27,86 +27,145 @@ Se documentan las entidades y atributos extraídos de las tablas de texto plano 
 
 
 **Justificación Técnica de las Visualizaciones Seleccionadas:**
-* **KPI 1: Tasa de Citas Canceladas y Pendientes:** Se justifica el uso de un gráfico de dona para observar rápidamente la proporción de citas que están en estado 'Cancelada' frente a las 'Pendientes' o completadas.
-* **KPI 2: Volumen de Citas por Especialidad Médica:** Se justifica el uso de un gráfico de barras verticales cruzando para facilitar la comparación de la demanda asistencial entre diferentes categorías.
-* **KPI 3: Distribución Demográfica de Pacientes (Edad):** Se justifica un histograma utilizando los datos de edad extraídos de `pacientes.txt` para comprender qué grupos generan la mayor demanda en el sistema clínico.
+* **Gráfico de Pastel (Pie Chart) — KPI 1 (Tasa de Ausentismo y Estado):** Seleccionado específicamente porque la variable categórica de estado tiene únicamente tres clases mutuamente excluyentes (Atendida, Pendiente, Cancelada / Ausente). Esto permite a la gerencia percibir de inmediato la relación de las partes respecto al flujo total operativo (100% de las citas), apoyado por la renderización de porcentajes explícitos (`autopct`).
+* **Gráficos de Barras Horizontales (Horizontal Barplots) — KPIs 2, 4, 6 y 8:** Se optó por la orientación horizontal de Seaborn para manejar adecuadamente variables categóricas con etiquetas de texto largas (nombres de especialidades, nombres de médicos y descripciones de diagnósticos). Esta disposición evita el solapamiento en el eje, mejora drásticamente la legibilidad en pantallas o proyecciones y permite jerarquizar los datos de mayor a menor (Top N) para identificar patrones de volumen al instante.
+* **Histograma con Estimación de Densidad Kernel (KDE) — KPI 3 (Perfil Demográfico):** Representa la mejor herramienta estadística para analizar el comportamiento de una variable numérica continua como la edad. La subdivisión paramétrica en 15 contenedores (*bins*) agrupa a los pacientes por rangos etarios, mientras que la superposición de la curva KDE suaviza el ruido transaccional para revelar la verdadera función de densidad de probabilidad y la asimetría de nuestra población de usuarios.
+* **Gráfico de Líneas con Marcadores (Lineplot) — KPI 5 (Demanda por Franja Horaria):** Implementado por ser el estándar analítico para mostrar la evolución de variables a través de un eje temporal secuencial. La adición de marcadores circulares explícitos (`marker='o'`) ancla la atención en los puntos de inflexión exactos, facilitando la detección táctica de picos de congestión (cuellos de botella) u horas de capacidad ociosa.
+* **Gráfico de Barras Verticales (Vertical Barplot) — KPI 7 (Volumen Mensual):** Escogido para mapear una serie temporal discreta que posee etiquetas alfanuméricas cortas (Ene, Feb, Mar...). Al posicionar la cronología en el eje X, la lectura natural de izquierda a derecha ayuda a los *stakeholders* a evaluar la magnitud estacional del negocio mes a mes sin distracciones visuales.
 
 ---
 
 ## 3. Construcción e Implementación de los KPIs
 **Código Fuente de la Implementación (Python / Pandas):**
 ```python
-# import pandas as pd
+import streamlit as st
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from streamlit_autorefresh import st_autorefresh
 
-# Configuración básica de estilo para los reportes
-sns.set_theme(style="whitegrid")
-path = "/content/"
+# --- CONFIGURACIÓN DEL DASHBOARD INTERACTIVO ---
+# Configuramos la página para que sea ancha y quepan bien tus gráficas
+st.set_page_config(page_title="MIS Hospitalario", layout="wide")
 
+# Actualización automática cada 30 segundos (30000 milisegundos)
+st_autorefresh(interval=30000, key="datarefresh")
 
-# 1. CARGA DE DATOS (Archivos del TPS en C)
-# Cargar citas - Forzamos strings en los IDs para evitar que borre ceros a la izquierda
-cols_citas = ['id_cita', 'cedula_paciente', 'id_medico', 'fecha', 'hora', 'estado_cita', 'diagnostico']
-df_citas = pd.read_csv(f"{path}citas.txt", sep=';', names=cols_citas, header=None, dtype=str)
+st.title(" Dashboard Analítico de Gestión Hospitalaria (MIS)")
+st.markdown("Este panel se actualiza en tiempo semi-real (Falso real) al registrar datos en el sistema TPS (ZinjaI).")
 
-# Traducimos los números del TPS a texto claro para el reporte gerencial
-diccionario_estados = {'0': 'Cancelada', '1': 'Activa', '2': 'Atendida'}
-df_citas['estado_desc'] = df_citas['estado_cita'].map(diccionario_estados)
+# Configuración estética de Seaborn 
+sns.set_theme(style="whitegrid", context="paper")
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
 
-# Cargar médicos
-cols_medicos = ['id_medico', 'nombre_medico', 'especialidad', 'horario']
-df_medicos = pd.read_csv(f"{path}medicos.txt", sep=';', names=cols_medicos, header=None, dtype=str)
+# Ruta local (vacía para que busque en la misma carpeta del script)
+path = ""
 
-# Cargar pacientes para graficar el histograma
-cols_pacientes = ['nombre_paciente', 'cedula_paciente', 'edad', 'telefono', 'correo']
-df_pacientes = pd.read_csv(f"{path}pacientes.txt", sep=';', names=cols_pacientes, header=None, dtype=str)
-df_pacientes['edad'] = pd.to_numeric(df_pacientes['edad'], errors='coerce')
+try:
+    # --- 1. CARGA Y TRANSFORMACIÓN DE DATOS (ETL) ---
+    cols_citas = ['id_cita', 'cedula_paciente', 'id_medico', 'fecha', 'hora', 'estado_cita', 'diagnostico']
+    df_citas = pd.read_csv(f"{path}citas.txt", sep=';', names=cols_citas, header=None, dtype=str)
+    diccionario_estados = {'0': 'Cancelada / Ausente', '1': 'Pendiente', '2': 'Atendida'}
+    df_citas['estado_desc'] = df_citas['estado_cita'].map(diccionario_estados)
 
+    cols_medicos = ['id_medico', 'nombre_medico', 'especialidad', 'horario']
+    df_medicos = pd.read_csv(f"{path}medicos.txt", sep=';', names=cols_medicos, header=None, dtype=str)
 
+    cols_pacientes = ['nombre_paciente', 'cedula_paciente', 'edad', 'telefono', 'correo']
+    df_pacientes = pd.read_csv(f"{path}pacientes.txt", sep=';', names=cols_pacientes, header=None, dtype=str)
+    df_pacientes['edad'] = pd.to_numeric(df_pacientes['edad'], errors='coerce')
 
-# 2. GENERACIÓN DEL DASHBOARD (Capa Visual MIS)
-# Creamos el lienzo con 3 subplots 
-fig, axes = plt.subplots(1, 3, figsize=(19, 6))
-fig.suptitle('Dashboard de Gestión Hospitalaria - Indicadores Clave (MIS)', fontsize=16, fontweight='bold', y=1.02)
+    # Cruces relacionales
+    df_citas_medicos = pd.merge(df_citas, df_medicos, on='id_medico', how='inner')
 
-# KPI 1: Distribución y Estado de las Citas 
-citas_por_estado = df_citas['estado_desc'].value_counts()
-colores_pie = ['#2ca02c', '#d62728', '#1f77b4'] # Verde (Atendida), Rojo (Cancelada), Azul (Activa)
+    # Procesamiento de fechas para los nuevos KPIs
+    df_citas['fecha_dt'] = pd.to_datetime(df_citas['fecha'], format='%d/%m/%Y', errors='coerce')
+    df_citas['mes'] = df_citas['fecha_dt'].dt.month
 
-axes[0].pie(citas_por_estado, labels=citas_por_estado.index, autopct='%1.1f%%', startangle=140, colors=colores_pie)
-axes[0].set_title('KPI 1: Estado Actual de Citas', fontsize=12, fontweight='bold')
+    # --- 2. GENERACIÓN DEL DASHBOARD (8 KPIs) ---
+    fig, axes = plt.subplots(4, 2, figsize=(18, 24))
+    fig.suptitle('Análisis Operativo y Estratégico', fontsize=22, fontweight='bold', color='#1A365D', y=0.99)
 
-# KPI 2: Demanda de Servicios por Especialidad
-# Cruzamos las citas con la tabla de médicos para obtener el campo especialidad
-df_citas_medicos = pd.merge(df_citas, df_medicos, on='id_medico', how='inner')
-demanda_esp = df_citas_medicos['especialidad'].value_counts().reset_index()
-demanda_esp.columns = ['Especialidad', 'Total Citas']
+    # [ KPI 1: Tasa de Ausentismo y Estado ]
+    citas_estado = df_citas['estado_desc'].value_counts()
+    color_map = {'Atendida': '#2E8B57', 'Pendiente': '#4682B4', 'Cancelada / Ausente': '#E67E22'}
+    axes[0, 0].pie(citas_estado, labels=citas_estado.index, autopct='%1.1f%%', startangle=140, 
+                   colors=[color_map.get(x, '#333') for x in citas_estado.index], wedgeprops={'linewidth': 1.5, 'edgecolor': 'white'})
+    axes[0, 0].set_title('KPI 1: Tasa de Ausentismo y Estado General', fontsize=14, fontweight='bold')
 
-# Graficamos usando un color fijo para evitar advertencias de la librería
-sns.barplot(data=demanda_esp, x='Total Citas', y='Especialidad', ax=axes[1], color='#4682B4')
-axes[1].set_title('KPI 2: Demanda por Especialidad Médica', fontsize=12, fontweight='bold')
-axes[1].set_xlabel('Número de Citas Registradas')
-axes[1].set_ylabel('') 
+    # [ KPI 2: Volumen de Citas por Especialidad ]
+    demanda_esp = df_citas_medicos['especialidad'].value_counts().reset_index()
+    demanda_esp.columns = ['Especialidad', 'Total']
+    sns.barplot(data=demanda_esp, x='Total', y='Especialidad', ax=axes[0, 1], color='#3182CE')
+    axes[0, 1].set_title('KPI 2: Demanda por Especialidad Médica', fontsize=14, fontweight='bold')
+    axes[0, 1].set_xlabel(''); axes[0, 1].set_ylabel('')
 
-# KPI 3: Perfil de Edad de Pacientes Atendidos
-# Combinamos citas con pacientes y filtramos únicamente los casos con éxito ('Atendida')
-df_citas_pacientes = pd.merge(df_citas, df_pacientes, on='cedula_paciente', how='inner')
-pacientes_atendidos = df_citas_pacientes[df_citas_pacientes['estado_cita'] == '2']
+    # [ KPI 3: Distribución Demográfica ]
+    sns.histplot(data=df_pacientes, x='edad', bins=15, kde=True, ax=axes[1, 0], color='#2B6CB0')
+    axes[1, 0].set_title('KPI 3: Perfil Demográfico (Edad)', fontsize=14, fontweight='bold')
+    axes[1, 0].set_xlabel('Edad (Años)'); axes[1, 0].set_ylabel('Pacientes Registrados')
 
-sns.histplot(data=pacientes_atendidos, x='edad', bins=12, kde=True, ax=axes[2], color='#8a2be2')
-axes[2].set_title('KPI 3: Rango de Edad (Pacientes Atendidos)', fontsize=12, fontweight='bold')
-axes[2].set_xlabel('Edad')
-axes[2].set_ylabel('Cantidad de Pacientes')
+    # [ KPI 4: Productividad Médica ]
+    df_atendidas = df_citas_medicos[df_citas_medicos['estado_cita'] == '2']
+    if not df_atendidas.empty:
+        prod_med = df_atendidas['nombre_medico'].value_counts().head(8).reset_index()
+        prod_med.columns = ['Médico', 'Total']
+        sns.barplot(data=prod_med, x='Total', y='Médico', ax=axes[1, 1], color='#4299E1')
+    axes[1, 1].set_title('KPI 4: Top 8 - Productividad por Médico (Atendidas)', fontsize=14, fontweight='bold')
+    axes[1, 1].set_xlabel(''); axes[1, 1].set_ylabel('')
 
-# Ajustes finales de empaquetado para que no se encima el texto
-plt.tight_layout()
-plt.show()
+    # [ KPI 5: Demanda por Franja Horaria ]
+    demanda_hora = df_citas['hora'].value_counts().sort_index().reset_index()
+    demanda_hora.columns = ['Hora', 'Total']
+    sns.lineplot(data=demanda_hora, x='Hora', y='Total', ax=axes[2, 0], marker='o', markersize=8, color='#E53E3E', linewidth=2.5)
+    axes[2, 0].set_title('KPI 5: Demanda Operativa por Franja Horaria', fontsize=14, fontweight='bold')
+    axes[2, 0].tick_params(axis='x', rotation=45)
+    axes[2, 0].set_xlabel('Hora del Día'); axes[2, 0].set_ylabel('Citas Programadas')
+
+    # [ KPI 6: Top Diagnósticos Frecuentes ]
+    df_diag = df_citas[df_citas['diagnostico'] != 'Pendiente']['diagnostico'].value_counts().head(6).reset_index()
+    df_diag.columns = ['Diagnóstico', 'Total']
+    sns.barplot(data=df_diag, x='Total', y='Diagnóstico', ax=axes[2, 1], color='#805AD5')
+    axes[2, 1].set_title('KPI 6: Top 6 - Diagnósticos Clínicos Frecuentes', fontsize=14, fontweight='bold')
+    axes[2, 1].set_xlabel(''); axes[2, 1].set_ylabel('')
+
+    # [ KPI 7: Tendencia Mensual (2026) ]
+    meses_nombres = {1:'Ene', 2:'Feb', 3:'Mar', 4:'Abr', 5:'May', 6:'Jun', 7:'Jul', 8:'Ago', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dic'}
+    tendencia_mes = df_citas['mes'].value_counts().sort_index().reset_index()
+    tendencia_mes.columns = ['MesNum', 'Total']
+    tendencia_mes['Mes'] = tendencia_mes['MesNum'].map(meses_nombres)
+    sns.barplot(data=tendencia_mes, x='Mes', y='Total', ax=axes[3, 0], color='#38B2AC')
+    axes[3, 0].set_title('KPI 7: Volumen Mensual de Citas', fontsize=14, fontweight='bold')
+    axes[3, 0].set_xlabel(''); axes[3, 0].set_ylabel('Cantidad de Citas')
+
+    # [ KPI 8: Tasa de Cancelación por Especialidad ]
+    df_canceladas = df_citas_medicos[df_citas_medicos['estado_cita'] == '0']['especialidad'].value_counts()
+    df_total_esp = df_citas_medicos['especialidad'].value_counts()
+    tasa_cancel = (df_canceladas / df_total_esp * 100).fillna(0).sort_values(ascending=False).reset_index()
+    tasa_cancel.columns = ['Especialidad', 'Tasa']
+    sns.barplot(data=tasa_cancel, x='Tasa', y='Especialidad', ax=axes[3, 1], color='#DD6B20')
+    axes[3, 1].set_title('KPI 8: Tasa de Cancelación por Área Médica (%)', fontsize=14, fontweight='bold')
+    axes[3, 1].set_xlabel('Ausentismo / Cancelaciones (%)'); axes[3, 1].set_ylabel('')
+
+    # Ajuste de márgenes
+    plt.tight_layout(rect=[0, 0, 1, 0.98])
+    
+    # Renderizamos todo el lienzo de Matplotlib/Seaborn en Streamlit
+    st.pyplot(fig)
+
+except FileNotFoundError as e:
+    st.warning(" Esperando a que el sistema en C genere los archivos .txt (citas, medicos, pacientes)...")
+except Exception as e:
+    st.error(f"Ocurrió un error al procesar los datos: {e}")
 ```
 
 ---
-<img width="1487" height="490" alt="WhatsApp Image 2026-05-22 at 13 11 34" src="https://github.com/user-attachments/assets/e5e308fa-9f0a-4383-b98a-3a8b5ff364e0" />
-### Figura obtenida mediante el codigo en googleCollab con datos de nuestros archivos .txt
+<img width="1189" height="366" alt="WhatsApp Image 2026-05-29 at 00 17 56" src="https://github.com/user-attachments/assets/dc6168ab-7fd7-4aba-b742-df51ac85c60e" />
+<img width="1188" height="397" alt="WhatsApp Image 2026-05-29 at 00 17 25" src="https://github.com/user-attachments/assets/10f76ede-4825-40a1-a912-06b336d3f3ea" />
+<img width="1194" height="407" alt="WhatsApp Image 2026-05-29 at 00 17 06" src="https://github.com/user-attachments/assets/f1e52b2d-9099-4193-b749-91025d9a3ed4" />
+<img width="1190" height="428" alt="WhatsApp Image 2026-05-29 at 00 16 50" src="https://github.com/user-attachments/assets/b554b976-4cb8-4fe1-ad81-bd5645d6cc9b" />
+
+Figura obtenida mediante el código implementado
 
 ## 4. Validación de Atributos de Información e Interpretación Gerencial
 ### 4.1 Matriz de Atributos de Valor
@@ -122,9 +181,34 @@ Evaluación analítica crítica del comportamiento de las consultas y gráficos 
 ### 4.2 Documentación de Interpretación Gerencial
 Definición analítica de las directrices estratégicas de respuesta ante los umbrales de cada indicador clave basado en los datos del sistema:
 
-* **KPI 1: Estado Operativo de Citas (Canceladas vs. Pendientes)**
-* Si este indicador clave de rendimiento muestra un comportamiento negativo fuera del umbral reflejando que las citas agendadas operan al 15% del total diario. La acción estratégica correctiva que la gerencia debe ejectura es activar una campaña de reconfirmación de turnos e implementar una política de penalizaciones a los pacientes que faltan de manera consecutiva."
-* **KPI 2: Volumen de Citas por Especialidad (Pediatría, Cardiología, etc.)**
-* Si este indicador clave de rendimiento muestra un comportamiento fuera de umbral que evidencia que las especialidades como pediatría o medicina general acumulan más del 40% de la demanda total, mientras que otras áreas quedan rezagadas, la acción estratégica de corrección que la gerencia debe ejecutar es la redistrubución de los horarios de atención y contratación temporal de personal de refuerzo para otras áreas críticas.
-* **KPI 3: Perfil Demográfico de Pacientes (Edad)**
-* Si este indicador clave de rendimiento muestra un comportamiento positivo o con una tendencia hacia un grupo específico (por ejemplo, una concentración masiva de pacientes jóvenes entre 18 y 25 años), la acción correctiva que la agencia debe ejecutar es adoptar los servicios y el stock de farmacia hacia las patologías o necesidades más comunes de este rango de edad. Al mismo tiempo si se llega a detectar un abandono de otros segmentos (adultos mayores), se debe diseñar campañas médicas comunitarias o brigadas de salud enfocadas en captar a este sector de la población
+* **KPI 1: Tasa de Ausentismo y Estado General**
+  * **Umbral de Alerta:** Tasa de cancelación o estado "Ausente" superior al **15%** del volumen total transaccional.
+  * **Directriz de Respuesta:** Activación inmediata de protocolos de confirmación automatizada (SMS/WhatsApp) a las 48 y 24 horas previas. Si el ausentismo persiste, implementar políticas de penalización temporal para pacientes reincidentes o exigir un copago anticipado para la reserva del turno.
+
+* **KPI 2: Demanda por Especialidad Médica**
+  * **Umbral de Alerta:** Una especialidad supera el **85%** de ocupación de su capacidad física instalada mensual.
+  * **Directriz de Respuesta:** Detonar el presupuesto de contingencia para la contratación de nuevos especialistas temporales (abrir nuevas agendas) o reasignar consultorios físicos de especialidades con menor demanda operativa para evitar cuellos de botella en la atención.
+
+* **KPI 3: Perfil Demográfico (Edad)**
+  * **Umbral de Alerta:** Un clúster etario específico (ej. adultos mayores de 65 años) representa más del **40%** de la densidad kernel de la población activa.
+  * **Directriz de Respuesta:** Pivotar la estrategia de marketing y redireccionar el presupuesto de la jefatura de planificación hacia campañas preventivas hiper-segmentadas (ej. despistaje de hipertensión o diabetes), asegurando la retención de este nicho de mercado y mejorando el servicio al usuario.
+
+* **KPI 4: Productividad Médica (Top 8)**
+  * **Umbral de Alerta:** El índice de horas efectivas de consulta por médico desciende por debajo del **75%** respecto a sus horas contratadas.
+  * **Directriz de Respuesta:** Intervención directa de la Dirección Médica (Chief Medical Officer) para auditar al personal médico ineficiente. Se debe reestructurar la asignación de turnos, eliminar los tiempos muertos entre citas y revaluar la rentabilidad del contrato del profesional.
+
+* **KPI 5: Demanda Operativa por Franja Horaria**
+  * **Umbral de Alerta:** La acumulación de citas programadas en un bloque horario supera la capacidad de procesamiento de los terminales de recepción en un **90%**.
+  * **Directriz de Respuesta:** Redistribución dinámica del personal administrativo de soporte. Obligatoriedad de trasladar los turnos de descanso del personal de recepción fuera de los picos de saturación detectados y evaluación para implementar quioscos de auto-registro rápido (*check-in* digital).
+
+* **KPI 6: Diagnósticos Clínicos Frecuentes (Top 6)**
+  * **Umbral de Alerta:** Variación positiva mensual (crecimiento acelerado) superior al **20%** en la frecuencia absoluta de una patología específica.
+  * **Directriz de Respuesta:** Alerta temprana al departamento de compras y farmacia para ejecutar el abastecimiento estratégico de insumos médicos vinculados a dicha morbilidad, mitigando el riesgo de desabastecimiento operativo ante brotes estacionales.
+
+* **KPI 7: Volumen Mensual de Citas (Tendencia)**
+  * **Umbral de Alerta:** Contracción sostenida (tendencia negativa) del volumen transaccional general por **dos meses consecutivos**.
+  * **Directriz de Respuesta:** Intervención inmediata del comité directivo para auditar factores exógenos (competencia, crisis económica) y endógenos (fugas por mala calidad de servicio). Lanzamiento táctico de campañas de fidelización y liberación de promociones en servicios de chequeo preventivo.
+
+* **KPI 8: Tasa de Cancelación por Área Médica (%)**
+  * **Umbral de Alerta:** Especialidades críticas reportan un ausentismo crónico (*no-show*) que sobrepasa el **20%** de su propia agenda.
+  * **Directriz de Respuesta:** Implementación algorítmica de sobreventa de turnos (*overbooking* controlado). Si dermatología tiene históricamente un 20% de cancelación, el sistema autorizará un 15% de sobreventa deliberada en esa área para neutralizar el impacto financiero de la capacidad ociosa sin colapsar la sala de espera.
