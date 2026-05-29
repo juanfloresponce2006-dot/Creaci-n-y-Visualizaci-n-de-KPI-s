@@ -182,33 +182,33 @@ Evaluación analítica crítica del comportamiento de las consultas y gráficos 
 Definición analítica de las directrices estratégicas de respuesta ante los umbrales de cada indicador clave basado en los datos del sistema:
 
 * **KPI 1: Tasa de Ausentismo y Estado General**
-  * **Umbral de Alerta:** Tasa de cancelación o estado "Ausente" superior al **15%** del volumen total transaccional.
-  * **Directriz de Respuesta:** Activación inmediata de protocolos de confirmación automatizada (SMS/WhatsApp) a las 48 y 24 horas previas. Si el ausentismo persiste, implementar políticas de penalización temporal para pacientes reincidentes o exigir un copago anticipado para la reserva del turno.
+  * **Qué mide:** El porcentaje de citas que no se concretan (canceladas o ausentes) frente al total de turnos programados.
+  * **Umbral de Alerta:** Cuando la inasistencia general supera el **15%** del volumen total operativo.
 
 * **KPI 2: Demanda por Especialidad Médica**
-  * **Umbral de Alerta:** Una especialidad supera el **85%** de ocupación de su capacidad física instalada mensual.
-  * **Directriz de Respuesta:** Detonar el presupuesto de contingencia para la contratación de nuevos especialistas temporales (abrir nuevas agendas) o reasignar consultorios físicos de especialidades con menor demanda operativa para evitar cuellos de botella en la atención.
+  * **Qué mide:** Identifica cuáles son las áreas clínicas (ej. cardiología, pediatría) con mayor afluencia de pacientes.
+  * **Umbral de Alerta:** Cuando una especialidad supera el **85%** de ocupación de su capacidad física instalada mensual.
 
 * **KPI 3: Perfil Demográfico (Edad)**
-  * **Umbral de Alerta:** Un clúster etario específico (ej. adultos mayores de 65 años) representa más del **40%** de la densidad kernel de la población activa.
-  * **Directriz de Respuesta:** Pivotar la estrategia de marketing y redireccionar el presupuesto de la jefatura de planificación hacia campañas preventivas hiper-segmentadas (ej. despistaje de hipertensión o diabetes), asegurando la retención de este nicho de mercado y mejorando el servicio al usuario.
+  * **Qué mide:** Clasifica a los pacientes por rangos de edad para entender a qué público se está atendiendo mayoritariamente.
+  * **Umbral de Alerta:** Cuando un grupo etario específico (ej. mayores de 65 años) representa más del **40%** de la población activa de la clínica.
 
 * **KPI 4: Productividad Médica (Top 8)**
-  * **Umbral de Alerta:** El índice de horas efectivas de consulta por médico desciende por debajo del **75%** respecto a sus horas contratadas.
-  * **Directriz de Respuesta:** Intervención directa de la Dirección Médica (Chief Medical Officer) para auditar al personal médico ineficiente. Se debe reestructurar la asignación de turnos, eliminar los tiempos muertos entre citas y revaluar la rentabilidad del contrato del profesional.
+  * **Qué mide:** Evalúa el rendimiento real de los doctores, revisando cuántos pacientes atendieron efectivamente durante su turno.
+  * **Umbral de Alerta:** Cuando el tiempo efectivo de consulta de un médico cae por debajo del **75%** respecto a las horas que tiene contratadas.
 
 * **KPI 5: Demanda Operativa por Franja Horaria**
-  * **Umbral de Alerta:** La acumulación de citas programadas en un bloque horario supera la capacidad de procesamiento de los terminales de recepción en un **90%**.
-  * **Directriz de Respuesta:** Redistribución dinámica del personal administrativo de soporte. Obligatoriedad de trasladar los turnos de descanso del personal de recepción fuera de los picos de saturación detectados y evaluación para implementar quioscos de auto-registro rápido (*check-in* digital).
+  * **Qué mide:** Muestra las horas del día en las que hay mayor congestión de pacientes en las instalaciones.
+  * **Umbral de Alerta:** Cuando la acumulación de citas en una sola hora supera en un **90%** la capacidad de atención del personal de recepción.
 
 * **KPI 6: Diagnósticos Clínicos Frecuentes (Top 6)**
-  * **Umbral de Alerta:** Variación positiva mensual (crecimiento acelerado) superior al **20%** en la frecuencia absoluta de una patología específica.
-  * **Directriz de Respuesta:** Alerta temprana al departamento de compras y farmacia para ejecutar el abastecimiento estratégico de insumos médicos vinculados a dicha morbilidad, mitigando el riesgo de desabastecimiento operativo ante brotes estacionales.
+  * **Qué mide:** Monitorea cuáles son las enfermedades, síntomas o motivos de consulta médica más recurrentes.
+  * **Umbral de Alerta:** Cuando los casos de un diagnóstico específico crecen más de un **20%** de un mes a otro.
 
 * **KPI 7: Volumen Mensual de Citas (Tendencia)**
-  * **Umbral de Alerta:** Contracción sostenida (tendencia negativa) del volumen transaccional general por **dos meses consecutivos**.
-  * **Directriz de Respuesta:** Intervención inmediata del comité directivo para auditar factores exógenos (competencia, crisis económica) y endógenos (fugas por mala calidad de servicio). Lanzamiento táctico de campañas de fidelización y liberación de promociones en servicios de chequeo preventivo.
+  * **Qué mide:** Analiza si la cantidad global de pacientes atendidos en la clínica sube o baja conforme pasan los meses.
+  * **Umbral de Alerta:** Cuando el volumen total de citas cae de forma sostenida durante **dos meses consecutivos**.
 
 * **KPI 8: Tasa de Cancelación por Área Médica (%)**
-  * **Umbral de Alerta:** Especialidades críticas reportan un ausentismo crónico (*no-show*) que sobrepasa el **20%** de su propia agenda.
-  * **Directriz de Respuesta:** Implementación algorítmica de sobreventa de turnos (*overbooking* controlado). Si dermatología tiene históricamente un 20% de cancelación, el sistema autorizará un 15% de sobreventa deliberada en esa área para neutralizar el impacto financiero de la capacidad ociosa sin colapsar la sala de espera.
+  * **Qué mide:** Aísla y calcula el porcentaje exacto de turnos cancelados de forma específica para cada especialidad.
+  * **Umbral de Alerta:** Cuando el ausentismo crónico (*no-show*) de una especialidad en particular sobrepasa el **20%** de su propia agenda.
