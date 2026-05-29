@@ -1,83 +1,132 @@
-Integrantes: Alan Aguilera, Juan José Flores
-
-# 1. Resumen Ejecutivo y Propuesta de Valor
-Este proyecto surge gracias a que la clínica ha recolectado gran cantidad de datos crudos mediante su TPS de citas, pero la gerencia prácticamente está operando a ciegas en la toma de decisiones, basándose en meras intuiciones. Al no tener reportes gerenciales, no tienen certeza de cuáles son los médicos más productivos, qué especialidades tienen cuellos de botella para atender pacientes ni cuáles son los números reales del ausentismo de los pacientes. Para solucionar esta adolescencia de conocimiento, se diseñó un prototipo de Sistema de Información Gerencial (MIS) que funciona como un procesador de información para extraer el verdadero valor de estos datos transaccionales, transformando los registros operativos en información estructurada para que la dirección médica y administrativa pueda tomar decisiones tácticas y estratégicas respaldadas por datos confiables y reales.
-
-El MIS se encarga de solventar las necesidades de información de los tres stakeholders principales, que son la Dirección Médica, la Gerencia de Operaciones y la Jefatura de Planificación y Control de Gestión. A través de un proceso automatizado de extracción, transformación y carga programado con Pandas en Jupyter Notebooks, procesamos la data transaccional para calcular una matriz limpia de 8 KPIs esenciales, alineados estrictamente con el negocio. Toda esta información procesada se visualiza de forma directa en un dashboard unificado mediante gráficos, lo que permite monitorear la productividad del personal y generar archivos estructurados para proyectar la demanda de consultas sin tener que perder tiempo en procesos manuales.
-
-La propuesta de valor de este MIS es que transforma simples datos en una ventaja competitiva lo que optimiza los procesos de soporte y gestión de la clínica lo que mejora directamente la atención al usuario. Mediante la automatización de los reportes programados y de indicadores clave, el sistema reduce el tiempo que el equipo utiliza haciendo auditorías mensuales y controles de gestión manuales. Además, el tablero proporciona las herramientas necesarias para cumplir las metas de reducir el ausentismo (no-show) y el personal médico ineficiente, demostrando cómo un buen uso de los sistemas de información resuelve los problemas del negocio de forma eficiente.
+# CreacionYVisualizaciondeKPIs
+Tarea
+# INFORME DE PROYECTO: MIS PARA GESTIÓN DE CITAS MÉDICAS
+## Diseño, Implementación e Identificación de KPIs
+**Integrantes del Grupo:** Aguilera Alan, Flores Juan
 
 ---
 
-# 2. Fase 1: Planificación y Análisis
+## 2. Mapeo de Atributos y Boceto de Interfaz
+### 2.1 Mapeo en el Esquema de Base de Datos
+Se documentan las entidades y atributos extraídos de las tablas de texto plano (.txt delimitado por punto y coma) del TPS (Sistema de Gestión de Citas Médicas).
 
-## 2.1. Análisis del Negocio
-* **Misión de la Empresa:** Optimizar el acceso y la gestión de los servicios de salud mediante un software eficiente, lo que facilita, simplifica, asegura y organiza la interacción entre pacientes y profesionales médicos para garantizar una atención de calidad.
-* **Visión de la Empresa:** Situarse como el instituto líder en eficiencia y servicio al cliente, mediante la digitalización e interconectividad total de sus servicios, consiguiendo que la tecnología supere las barreras de acceso entre los profesionales de la salud y los usuarios.
-* **Objetivos Estratégicos:**
-    * Reducir el personal médico ineficiente y el ausentismo (no-show) de pacientes en un 15% durante los próximos 6 meses.
-    * Disminuir en un 25% el tiempo dedicado a la auditoría mensual y control de gestión de la clínica en los próximos 3 meses.
-    * Reducir en un 20% el tiempo de espera para la asignación de consultas en especialidades críticas durante los próximos 5 meses.
+| Archivo TXT | Atributos / Columnas | Propósito en el MIS |
+| :--- | :--- | :--- |
+| `citas.txt` | id_cita, cedula_paciente, id_medico, fecha, hora, estado de la cita (0:cancelada, 1:Activa, 2:Atendida), diagnostico | Visualización de tasa de cancelaciones y volumen temporal. |
+| `medicos.txt` | id_medico, nombre_medico, especialidad, horario | Visualización y agrupación de la demanda por especialidad. |
+| `pacientes.txt` | nombre_paciente, cedula_paciente, edad, telefono, correo | Análisis demográfico de pacientes atendidos. |
+| `usuarios.txt` | usuario, contraseña, rol, (cedula del paciente o ID del médico) | Contabilización de usuarios. |
 
-## 2.2. Identificación de Stakeholders
-1. **Chief Medical Officer (Dirección Médica):** El encargado de evaluar los reportes de ocupación y productividad por médico, tasas de ausentismo por parte de los pacientes por cada especialidad y estadísticas de tiempos de gestión de citas.
-2. **Gerencia de Operaciones y Administración:** Requiere acceso al MIS para realizar auditorías, reportes de cuellos de botella en la asignación de turnos y tasas de cancelación de citas.
-3. **Jefatura de Planificación y Control de Gestión:** Precisa archivos planos bien estructurados con la data histórica de los pacientes, patologías generales y proyecciones móviles de demanda para los meses consecutivos.
+**Relaciones entre entidades:**
+* La tabla `citas.txt` actúa como el núcleo transaccional conectándose con `medicos.txt` mediante el atributo `id_medico`.
+* La tabla `citas.txt` se conecta con `pacientes.txt` mediante la `cedula_paciente`.
 
-## 2.3. Preguntas Clave
-* ¿Qué información consolidada necesitas los tomadores de decisiones y con qué frecuencia?
-* ¿Cómo se transforman los datos operativos obtenidos mediante el TPS en información gerencial?
-* ¿Cuáles son las restricciones técnicas de almacenamiento y persistencia para el MIS?
-* ¿Quiénes tendrán acceso a la información del MIS y cómo se garantizará la seguridad de los datos?
-* ¿Cómo interactuará el/los usuario/s gerencial con el MIS?
+### 2.2 Bocetado Visual (Mockup)
 
----
+<img width="2560" height="4585" alt="Medical Center Appointment Operations Dashboard" src="https://github.com/user-attachments/assets/230257d9-4dcc-4d25-9731-be4b3b4ed316" />
 
-# 3. Fase 2: Diseño de la Solución (Matriz de KPIs)
 
-| Nombre del KPI | Tipo de Reporte (MIS) | Fórmula / Definición Lógica | Propósito Estratégico |
-| :--- | :--- | :--- | :--- |
-| **1. Tasa de ausentismo de pacientes** | Programado | Citas canceladas + Citas pendientes / Total de citas x 100 | Evaluar la demanda insatisfecha acumulada en el TPS para ajustar las políticas de sobreventa o liberación de turnos. |
-| **2. Volumen de citas por especialidad médica** | Programado | (Citas completadas agrupadas por especialidad) | Identificar las áreas clínicas de mayor demanda operativa para planificar la infraestructura física y la asignación de presupuestos a corto y mediano plazo. |
-| **3. Distribución demográfica de pacientes** | Programado | Conteo y porcentaje de pacientes por rangos de edad | Caracterizar epidemiológicamente a la población de usuarios para diseñare e implementar campañas preventivas. |
-| **4. Productividad Médica (Top 8)** | Resumido | Conteo descendente de citas en estado 'Atendida' por nombre_medico | Reducir el personal médico ineficiente y optimizar el rendimiento global del staff de salud. |
-| **5. Demanda Operativa por Franja Horaria** | Resumido | Frecuencia temporal indexada secuencialmente por la variable hora | Detectar picos de saturación diaria para optimizar la distribución del personal de recepción y abatir cuellos de botella. |
-| **6. Productividad de consultas por médico** | Programado | Número de pacientes atendidos efectivo / Horas totales de consulta activa | Reducir el personal médico ineficiente y optimizar el rendimiento por hora de consulta. |
-| **7. Volumen Mensual de Citas** | Resumido | Agrupación cronológica secuencial del volumen transaccional por mes calendario | Proveer data estructurada a control de gestión para proyectar la demanda móvil de consultas sin reprocesos manuales. |
-| **8. Tasa de Cancelación por Área Médica (%)** | Resumido | Tasa = (Citas canceladas de la especialidad/Total de citas de la especialidad)*100 | Detectar fallas de retención y el ausentismo (no-show) por área específica para maximizar el uso del recurso humano. |
-
-## 3.2. Distribución del Dashboard
-El diseño e implementación del dashboard se desarrolla como estrategia para una institución de salud que, tras acumular una gran cantidad de datos crudos mediante su TPS, necesita optimizar la toma de decisiones. El mismo muestra un tablero estructurado en una matriz de 4 filas por 2 columnas (4x2), distribuyendo los gráficos de forma balanceada e integrada de la siguiente manera:
-
-* **Fila 1:** Aloja a la izquierda el gráfico de pastel de la Tasa de Ausentismo y Estado General y a la derecha las barras horizontales de la Demanda por Especialidad Médica.
-* **Fila 2:** Dispone a la izquierda el histograma continuo del Perfil Demográfico (Edad) y a la derecha el gráfico de barras horizontales de Productividad por Médico (Top 8).
-* **Fila 3:** Presenta a la izquierda el gráfico de líneas de la Demanda Operativa por Franja Horaria y a la derecha el diagrama de barras del Top 6 de Diagnósticos Clínicos Frecuentes.
-* **Fila 4:** Ubica a la izquierda las barras verticales de tendencia del Volumen Mensual de Citas y a la derecha el gráfico analítico de la Tasa de Cancelación por Área Médica (%).
+**Justificación Técnica de las Visualizaciones Seleccionadas:**
+* **KPI 1: Tasa de Citas Canceladas y Pendientes:** Se justifica el uso de un gráfico de dona para observar rápidamente la proporción de citas que están en estado 'Cancelada' frente a las 'Pendientes' o completadas.
+* **KPI 2: Volumen de Citas por Especialidad Médica:** Se justifica el uso de un gráfico de barras verticales cruzando para facilitar la comparación de la demanda asistencial entre diferentes categorías.
+* **KPI 3: Distribución Demográfica de Pacientes (Edad):** Se justifica un histograma utilizando los datos de edad extraídos de `pacientes.txt` para comprender qué grupos generan la mayor demanda en el sistema clínico.
 
 ---
 
-# 4. Fase 3: Implementación Técnica
+## 3. Construcción e Implementación de los KPIs
+**Código Fuente de la Implementación (Python / Pandas):**
+```python
+# import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-## 4.1. Proceso ETL (Extracción, Transformación y Carga) en Jupyter Notebooks
-El pipeline de datos desarrollado en Python se encarga de estructurar los datos del TPS mediante los siguientes pasos automatizados:
-* **Extracción:** Lectura automatizada de archivos planos fuente en bruto (citas.txt, medicos.txt, pacientes.txt) delimitados por caracteres de punto y coma (;), asegurando la integridad de llaves y campos de identidad mediante tipado inicial de cadenas de texto (str).
-* **Transformación:** Limpieza y tipado forzado de variables numéricas (edad) y temporales (fecha_dt), extracción indexada del mes calendario, mapeo descriptivo de códigos operacionales de la clínica (0, 1, 2) a estados legibles de negocio, y consolidación de la base de datos mediante cruces relacionales internos de tipo inner join.
-* **Carga:** Estructuración estructurada y optimizada de DataFrames limpios listos para alimentar de forma directa el bloque de visualización analítica de la gerencia.
+# Configuración básica de estilo para los reportes
+sns.set_theme(style="whitegrid")
+path = "/content/"
 
-## 4.2. Implementación de Visualizaciones (Matplotlib y Seaborn)
-Para la construcción estética del dashboard, se implementó la librería Seaborn bajo el tema visual de cuadrícula blanca (`style="whitegrid"`) y un escalado apto para reportes corporativos (`context="paper"`). Se forzó el uso del conjunto tipográfico DejaVu Sans de forma global para mitigar advertencias de renderizado en el sistema.
 
-La paleta cromática se seleccionó con un enfoque puramente funcional y ejecutivo:
-* **Métricas de Estatus Global y Fugas (KPI 1 y KPI 8):** El diagrama de pastel emplea un mapeo explícito (`#2E8B57` para Atendidas, `#4682B4` para Pendientes, y `#E67E22` para Canceladas/Ausentes) con bordes blancos de 1.5 de grosor. Para la tasa de cancelación por especialidad (KPI 8) se aplicó un tono naranja de advertencia (`#DD6B20`), aislando visualmente el impacto del no-show.
-* **Volumen, Demanda y Eficiencia (KPI 2, KPI 4 y KPI 7):** Se emplearon variaciones armónicas de azul corporativo (`#3182CE`, `#4299E1`) y verde turquesa (`#38B2AC`) configurados en gráficos de barras, garantizando claridad en la lectura jerárquica de la productividad del personal y la afluencia para la junta directiva.
-* **Estructuras de Población y Patologías (KPI 3 y KPI 6):** El perfil de edad se trazó mediante un histograma azul acero (`#2B6CB0`) subdividido en 15 contenedores con curva de estimación de densidad (KDE) superpuesta. Los diagnósticos frecuentes se diferenciaron con un tono púrpura profundo (`#805AD5`), separando analíticamente los hallazgos médicos de las métricas puramente logísticas.
-* **Saturación Temporal (KPI 5):** La demanda horaria se plasmó en un gráfico de líneas continuas en rojo carmín de alta intensidad (`#E53E3E`), con un espesor de trazo de 2.5 y marcadores circulares de tamaño 8 para acentuar explícitamente los picos de congestión operativa.
+# 1. CARGA DE DATOS (Archivos del TPS en C)
+# Cargar citas - Forzamos strings en los IDs para evitar que borre ceros a la izquierda
+cols_citas = ['id_cita', 'cedula_paciente', 'id_medico', 'fecha', 'hora', 'estado_cita', 'diagnostico']
+df_citas = pd.read_csv(f"{path}citas.txt", sep=';', names=cols_citas, header=None, dtype=str)
 
-El lienzo maestro unificado posee unas dimensiones físicas de 18x24 pulgadas, gobernado por el método `plt.tight_layout(rect=[0,0,1,0.98])` para evitar solapamientos y reservar la franja superior para el título principal, configurado en tipografía azul marino oscuro (`#1A365D`, `fontsize=22`).
+# Traducimos los números del TPS a texto claro para el reporte gerencial
+diccionario_estados = {'0': 'Cancelada', '1': 'Activa', '2': 'Atendida'}
+df_citas['estado_desc'] = df_citas['estado_cita'].map(diccionario_estados)
+
+# Cargar médicos
+cols_medicos = ['id_medico', 'nombre_medico', 'especialidad', 'horario']
+df_medicos = pd.read_csv(f"{path}medicos.txt", sep=';', names=cols_medicos, header=None, dtype=str)
+
+# Cargar pacientes para graficar el histograma
+cols_pacientes = ['nombre_paciente', 'cedula_paciente', 'edad', 'telefono', 'correo']
+df_pacientes = pd.read_csv(f"{path}pacientes.txt", sep=';', names=cols_pacientes, header=None, dtype=str)
+df_pacientes['edad'] = pd.to_numeric(df_pacientes['edad'], errors='coerce')
+
+
+
+# 2. GENERACIÓN DEL DASHBOARD (Capa Visual MIS)
+# Creamos el lienzo con 3 subplots 
+fig, axes = plt.subplots(1, 3, figsize=(19, 6))
+fig.suptitle('Dashboard de Gestión Hospitalaria - Indicadores Clave (MIS)', fontsize=16, fontweight='bold', y=1.02)
+
+# KPI 1: Distribución y Estado de las Citas 
+citas_por_estado = df_citas['estado_desc'].value_counts()
+colores_pie = ['#2ca02c', '#d62728', '#1f77b4'] # Verde (Atendida), Rojo (Cancelada), Azul (Activa)
+
+axes[0].pie(citas_por_estado, labels=citas_por_estado.index, autopct='%1.1f%%', startangle=140, colors=colores_pie)
+axes[0].set_title('KPI 1: Estado Actual de Citas', fontsize=12, fontweight='bold')
+
+# KPI 2: Demanda de Servicios por Especialidad
+# Cruzamos las citas con la tabla de médicos para obtener el campo especialidad
+df_citas_medicos = pd.merge(df_citas, df_medicos, on='id_medico', how='inner')
+demanda_esp = df_citas_medicos['especialidad'].value_counts().reset_index()
+demanda_esp.columns = ['Especialidad', 'Total Citas']
+
+# Graficamos usando un color fijo para evitar advertencias de la librería
+sns.barplot(data=demanda_esp, x='Total Citas', y='Especialidad', ax=axes[1], color='#4682B4')
+axes[1].set_title('KPI 2: Demanda por Especialidad Médica', fontsize=12, fontweight='bold')
+axes[1].set_xlabel('Número de Citas Registradas')
+axes[1].set_ylabel('') 
+
+# KPI 3: Perfil de Edad de Pacientes Atendidos
+# Combinamos citas con pacientes y filtramos únicamente los casos con éxito ('Atendida')
+df_citas_pacientes = pd.merge(df_citas, df_pacientes, on='cedula_paciente', how='inner')
+pacientes_atendidos = df_citas_pacientes[df_citas_pacientes['estado_cita'] == '2']
+
+sns.histplot(data=pacientes_atendidos, x='edad', bins=12, kde=True, ax=axes[2], color='#8a2be2')
+axes[2].set_title('KPI 3: Rango de Edad (Pacientes Atendidos)', fontsize=12, fontweight='bold')
+axes[2].set_xlabel('Edad')
+axes[2].set_ylabel('Cantidad de Pacientes')
+
+# Ajustes finales de empaquetado para que no se encima el texto
+plt.tight_layout()
+plt.show()
+```
 
 ---
+<img width="1487" height="490" alt="WhatsApp Image 2026-05-22 at 13 11 34" src="https://github.com/user-attachments/assets/e5e308fa-9f0a-4383-b98a-3a8b5ff364e0" />
+### Figura obtenida mediante el codigo en googleCollab con datos de nuestros archivos .txt
 
-# 5. Fase 4: Estrategia de Venta Comercial y Conclusiones
-La defensa final del proyecto ante la Junta Directiva se fundamenta en un lenguaje puramente empresarial, omitiendo tecnicismos algorítmicos. La solución propuesta se posiciona no como un gasto tecnológico, sino como una inversión estratégica capaz de aumentar los márgenes operativos mediante la visibilidad absoluta de los datos. Al transformar la analítica en una herramienta interactiva, la consultora de SI dota a la empresa de la capacidad de anticiparse a los cambios de la demanda, mitigando riesgos financieros y consolidando una clara ventaja competitiva en el ecosistema empresarial de la Escuela Politécnica Nacional. 
+## 4. Validación de Atributos de Información e Interpretación Gerencial
+### 4.1 Matriz de Atributos de Valor
+Evaluación analítica crítica del comportamiento de las consultas y gráficos generados para asegurar su aplicabilidad ejecutiva.
 
-La solución propuesta se posiciona no como un gasto tecnológico, sino como una inversión estratégica capaz de aumentar los márgenes operativos mediante la visibilidad absoluta de información. Al transformar la analítica en una herramienta interactiva, la consultora de SI dota a la empresa de la capacidad de anticiparse a los cambios de la demanda, mitigando riesgos financieros y consolidando una clara ventaja competitiva.
+| Característica | Pregunta de Validación | Análisis y Cumplimiento en el Sistema Clínico |
+| :--- | :--- | :--- |
+| **Simplicidad** | ¿El gráfico evita la sobrecarga de información y destaca lo realmente importante? | Se generó los gráficos con las variables necesarias que se necesitaba monitorear. El gráfico tipo pastel es limpio y no se ve saturado debido a la simplicidad de los atributos. El gráfico de barras se explica a el mismo con las etiquetas adecuadas. Para el histogrma, agrupamos las edades en rangos lógicos para que la distrubución sea fácil de visualizar. |
+| **Oportunidad (Timeliness)** | ¿La consulta procesa los datos con la velocidad requerida para que el administrador actúe a tiempo? | Al conectarse el MIS mediante la lectura de los TPS con archivos .txt y vinculandolas con las librerias pandas la velocidad de procesamiento es prácticamente inmediata. Al utilizar googlecollab y utilizar archivos .txt se observó un inconveniente al momento de actualizar los datos en tiempo real con el MIS. Por ello el gerente deberá actualizar la celda de datos en googlecollab para que al final se vea reflejado el estado real de la clínica |
+| **Accesibilidad** | ¿El formato del reporte permite que un usuario no técnico interprete el resultado de un solo vistazo? | La capa gráfica fue pensada para un uso intuitivo y para aquellos que no poseen conocimientos técnicos de programación. El uso de colores y titulos facilita que cualquier persona del equipo de salud puede interpretar los gráficos. |
+<img width="1487" height="490" alt="WhatsApp Image 2026-05-22 at 13 11 34" src="https://github.com/user-attachments/assets/e5e308fa-9f0a-4383-b98a-3a8b5ff364e0" />
+### Figura obtenida mediante el codigo en googleCollab con datos de nuestros archivos .txt
+
+
+### 4.2 Documentación de Interpretación Gerencial
+Definición analítica de las directrices estratégicas de respuesta ante los umbrales de cada indicador clave basado en los datos del sistema:
+
+* **KPI 1: Estado Operativo de Citas (Canceladas vs. Pendientes)**
+* Si este indicador clave de rendimiento muestra un comportamiento negativo fuera del umbral reflejando que las citas agendadas operan al 15% del total diario. La acción estratégica correctiva que la gerencia debe ejectura es activar una campaña de reconfirmación de turnos e implementar una política de penalizaciones a los pacientes que faltan de manera consecutiva."
+* **KPI 2: Volumen de Citas por Especialidad (Pediatría, Cardiología, etc.)**
+* Si este indicador clave de rendimiento muestra un comportamiento fuera de umbral que evidencia que las especialidades como pediatría o medicina general acumulan más del 40% de la demanda total, mientras que otras áreas quedan rezagadas, la acción estratégica de corrección que la gerencia debe ejecutar es la redistrubución de los horarios de atención y contratación temporal de personal de refuerzo para otras áreas críticas.
+* **KPI 3: Perfil Demográfico de Pacientes (Edad)**
+* Si este indicador clave de rendimiento muestra un comportamiento positivo o con una tendencia hacia un grupo específico (por ejemplo, una concentración masiva de pacientes jóvenes entre 18 y 25 años), la acción correctiva que la agencia debe ejecutar es adoptar los servicios y el stock de farmacia hacia las patologías o necesidades más comunes de este rango de edad. Al mismo tiempo si se llega a detectar un abandono de otros segmentos (adultos mayores), se debe diseñar campañas médicas comunitarias o brigadas de salud enfocadas en captar a este sector de la población
