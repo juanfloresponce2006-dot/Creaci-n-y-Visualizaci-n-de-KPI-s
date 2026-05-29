@@ -45,7 +45,7 @@ import seaborn as sns
 from streamlit_autorefresh import st_autorefresh
 
 # --- CONFIGURACIÓN DEL DASHBOARD INTERACTIVO ---
-# Configuramos la página para que sea ancha y quepan bien tus gráficas
+# Configuramos la página para que sea ancha y quepan bien las gráficas
 st.set_page_config(page_title="MIS Hospitalario", layout="wide")
 
 # Actualización automática cada 30 segundos (30000 milisegundos)
